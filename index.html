@@ -1,338 +1,244 @@
-import React, { useState, useMemo } from 'react';
-import { ChevronRight, Award, Lightbulb, MapPin, Target, Users, BookOpen, RefreshCw, Globe } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1分钟测一测：你适合出海越南吗？</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 React 和 Babel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <!-- 引入 Lucide 图标 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes bounce-subtle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .animate-bounce-subtle {
+            animation: bounce-subtle 2s infinite ease-in-out;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
 
-const QUESTIONS = [
-  {
-    id: 1,
-    question: "1. 越南人口大约是多少？",
-    options: ["A. 5000万", "B. 1亿左右", "C. 2亿"],
-    answer: 1,
-    analysis: "越南人口接近1亿，是东南亚重要人口大国。"
-  },
-  {
-    id: 2,
-    question: "2. 越南的主要经济中心是？",
-    options: ["A. 河内 + 岘港", "B. 河内 + 胡志明市", "C. 胡志明市 + 芽庄"],
-    answer: 1,
-    analysis: "北部政治中心河内，南部经济中心胡志明市。"
-  },
-  {
-    id: 3,
-    question: "3. 越南人口结构的特点是？",
-    options: ["A. 老龄化严重", "B. 年轻人口占比高", "C. 人口增长停滞"],
-    answer: 1,
-    analysis: "越南平均年龄约32岁，消费潜力大。"
-  },
-  {
-    id: 4,
-    question: "4. 中国企业进入越南，常见的第一步是？",
-    options: ["A. 直接建厂", "B. 找本地合作伙伴/代理", "C. 先开线下门店"],
-    answer: 1,
-    analysis: "本地资源和渠道非常关键。"
-  },
-  {
-    id: 5,
-    question: "5. 在越南商务谈判中，如果对方请你喝“滴漏咖啡”，这通常意味着？",
-    options: ["A. 拒绝合作", "B. 愿意深入沟通", "C. 只是为了解渴"],
-    answer: 1,
-    analysis: "越南人节奏较慢，喝咖啡是建立私人关系的重要方式。"
-  },
-  {
-    id: 6,
-    question: "6. 越南农业出口中，最具全球竞争力的产品之一是？",
-    options: ["A. 咖啡", "B. 小麦", "C. 玉米"],
-    answer: 0,
-    analysis: "越南是全球重要的咖啡出口国之一，尤其在罗布斯塔咖啡领域具有显著优势。"
-  },
-  {
-    id: 7,
-    question: "7. 越南适合中国企业布局的行业不包括？",
-    options: ["A. 制造业", "B. 跨境电商", "C. 重度高端金融服务"],
-    answer: 2,
-    analysis: "高端金融仍受政策与市场成熟度限制。"
-  },
-  {
-    id: 8,
-    question: "8. 在越南商务沟通中，更推荐的方式是？",
-    options: ["A. 强势谈判", "B. 建立长期关系再推进合作", "C. 快速签约优先"],
-    answer: 1,
-    analysis: "越南商业文化偏重“关系导向”。"
-  },
-  {
-    id: 9,
-    question: "9. 越南的制造业优势主要来自？",
-    options: ["A. 高技术", "B. 低劳动力成本 + 政策支持", "C. 原材料丰富"],
-    answer: 1,
-    analysis: "低劳动力成本与多项FTA贸易政策支持是核心竞争力。"
-  },
-  {
-    id: 10,
-    question: "10. 越南语中，“你好”的最常用表达是？",
-    options: ["A. Sawadika", "B. Xin Chào", "C. Apa Khabar"],
-    answer: 1,
-    analysis: "记住“新潮”，到越南的第一步就迈出去啦！"
-  }
-];
+    <script type="text/babel">
+        const { useState, useMemo, useEffect } = React;
 
-const ROLES = [
-  {
-    title: "越南市场观察者",
-    range: [0, 4],
-    percent: "30%",
-    status: "关注与了解阶段",
-    desc: "你目前处在“关注与了解阶段”。你已经开始留意越南市场机会，对东南亚出海有初步认知，但整体信息仍偏碎片化，对市场结构、商业环境和实际落地路径还不够清晰。",
-    features: ["对越南市场有兴趣，但认知尚未体系化", "更关注“机会”，对“风险”和“执行难度”理解有限", "可能仍在多个出海目的地之间比较"],
-    suggestions: ["明确出海目标：成本导向 or 市场导向", "快速建立基础认知（城市结构、行业分布、消费特征）", "参考2–3个已进入越南的中国企业案例"]
-  },
-  {
-    title: "越南市场规划者",
-    range: [5, 7],
-    percent: "65%",
-    status: "评估与准备阶段",
-    desc: "你已经进入“评估与准备阶段”。你不仅了解越南市场，还在认真思考是否进入，甚至已经在内部讨论或接触过相关资源。",
-    features: ["对市场已有一定认知，开始关注落地问题", "正在评估进入方式（合作 / 自建 / 渠道）", "对行业机会有初步判断"],
-    suggestions: ["明确进入模式（代理 / 合资 / 本地团队）", "优先筛选可靠的本地合作资源", "提前评估合规与用工环境"]
-  },
-  {
-    title: "越南市场布局者",
-    range: [8, 10],
-    percent: "90%",
-    status: "落地与扩展能力",
-    desc: "你已具备“落地与扩展能力”。你对越南市场有较系统的理解，可能已经有实际布局，或具备清晰的进入路径与资源储备。",
-    features: ["对市场结构、行业机会有较深认知", "已具备一定本地资源或实际经验", "更关注效率、规模化与长期竞争力"],
-    suggestions: ["强化本地团队与组织能力", "深化本地化（品牌、产品、运营）", "寻找差异化竞争路径，避免同质化竞争"]
-  }
-];
+        // 图标组件适配器
+        const Icon = ({ name, className }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, [name]);
+            return <i data-lucide={name} className={className}></i>;
+        };
 
-export default function App() {
-  const [step, setStep] = useState('home'); 
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [score, setScore] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [showAnalysis, setShowAnalysis] = useState(false);
+        const QUESTIONS = [
+            { id: 1, question: "1. 越南人口大约是多少？", options: ["A. 5000万", "B. 1亿左右", "C. 2亿"], answer: 1, analysis: "越南人口接近1亿，是东南亚重要人口大国。" },
+            { id: 2, question: "2. 越南的主要经济中心是？", options: ["A. 河内 + 岘港", "B. 河内 + 胡志明市", "C. 胡志明市 + 芽庄"], answer: 1, analysis: "北部政治中心河内，南部经济中心胡志明市。" },
+            { id: 3, question: "3. 越南人口结构的特点是？", options: ["A. 老龄化严重", "B. 年轻人口占比高", "C. 人口增长停滞"], answer: 1, analysis: "越南平均年龄约32岁，消费潜力大。" },
+            { id: 4, question: "4. 中国企业进入越南，常见的第一步是？", options: ["A. 直接建厂", "B. 找本地合作伙伴/代理", "C. 先开线下门店"], answer: 1, analysis: "本地资源和渠道非常关键。" },
+            { id: 5, question: "5. 在越南商务谈判中，如果对方请你喝“滴漏咖啡”，这通常意味着？", options: ["A. 拒绝合作", "B. 愿意深入沟通", "C. 只是为了解渴"], answer: 1, analysis: "越南人节奏较慢，喝咖啡是建立私人关系的重要方式。" },
+            { id: 6, question: "6. 越南农业出口中，最具全球竞争力的产品之一是？", options: ["A. 咖啡", "B. 小麦", "C. 玉米"], answer: 0, analysis: "越南是全球重要的咖啡出口国之一，尤其在罗布斯塔咖啡领域具有显著优势。" },
+            { id: 7, question: "7. 越南适合中国企业布局的行业不包括？", options: ["A. 制造业", "B. 跨境电商", "C. 重度高端金融服务"], answer: 2, analysis: "高端金融仍受政策与市场成熟度限制。" },
+            { id: 8, question: "8. 在越南商务沟通中，更推荐的方式是？", options: ["A. 强势谈判", "B. 建立长期关系再推进合作", "C. 快速签约优先"], answer: 1, analysis: "越南商业文化偏重“关系导向”。" },
+            { id: 9, question: "9. 越南的制造业优势主要来自？", options: ["A. 高技术", "B. 低劳动力成本 + 政策支持", "C. 原材料丰富"], answer: 1, analysis: "低劳动力成本与多项FTA贸易政策支持是核心竞争力。" },
+            { id: 10, question: "10. 越南语中，“你好”的最常用表达是？", options: ["A. Sawadika", "B. Xin Chào", "C. Apa Khabar"], answer: 1, analysis: "记住“新潮”，到越南的第一步就迈出去啦！" }
+        ];
 
-  const handleStart = () => {
-    setStep('quiz');
-    setCurrentIdx(0);
-    setScore(0);
-  };
+        const ROLES = [
+            {
+                title: "越南市场观察者",
+                range: [0, 4],
+                percent: "30%",
+                status: "关注与了解阶段",
+                desc: "你目前处在“关注与了解阶段”。你已经开始留意越南市场机会，对东南亚出海有初步认知，但整体信息仍偏碎片化，对市场结构、商业环境和实际落地路径还不够清晰。",
+                features: ["对越南市场有兴趣，但认知尚未体系化", "更关注“机会”，对“风险”和“执行难度”理解有限", "可能仍在多个出海目的地之间比较"],
+                suggestions: ["明确出海目标：成本导向 or 市场导向", "快速建立基础认知（城市结构、行业分布、消费特征）", "参考2–3个已进入越南的中国企业案例"]
+            },
+            {
+                title: "越南市场规划者",
+                range: [5, 7],
+                percent: "65%",
+                status: "评估与准备阶段",
+                desc: "你已经进入“评估与准备阶段”。你不仅了解越南市场，还在认真思考是否进入，甚至已经在内部讨论或接触过相关资源。",
+                features: ["对市场已有一定认知，开始关注落地问题", "正在评估进入方式（合作 / 自建 / 渠道）", "对行业机会有初步判断"],
+                suggestions: ["明确进入模式（代理 / 合资 / 本地团队）", "优先筛选可靠的本地合作资源", "提前评估合规与用工环境"]
+            },
+            {
+                title: "越南市场布局者",
+                range: [8, 10],
+                percent: "90%",
+                status: "落地与扩展能力",
+                desc: "你已具备“落地与扩展能力”。你对越南市场有较系统的理解，可能已经有实际布局，或具备清晰的进入路径与资源储备。",
+                features: ["对市场结构、行业机会有较深认知", "已具备一定本地资源或实际经验", "更关注效率、规模化与长期竞争力"],
+                suggestions: ["强化本地团队与组织能力", "深化本地化（品牌、产品、运营）", "寻找差异化竞争路径，避免同质化竞争"]
+            }
+        ];
 
-  const handleSelect = (idx) => {
-    if (showAnalysis) return;
-    setSelectedAnswer(idx);
-    setShowAnalysis(true);
-    if (idx === QUESTIONS[currentIdx].answer) {
-      setScore(s => s + 1);
-    }
-  };
+        function App() {
+            const [step, setStep] = useState('home'); 
+            const [currentIdx, setCurrentIdx] = useState(0);
+            const [score, setScore] = useState(0);
+            const [selectedAnswer, setSelectedAnswer] = useState(null);
+            const [showAnalysis, setShowAnalysis] = useState(false);
 
-  const handleNext = () => {
-    if (currentIdx < QUESTIONS.length - 1) {
-      setCurrentIdx(i => i + 1);
-      setSelectedAnswer(null);
-      setShowAnalysis(false);
-    } else {
-      setStep('result');
-    }
-  };
+            const handleStart = () => {
+                setStep('quiz');
+                setCurrentIdx(0);
+                setScore(0);
+            };
 
-  const currentRole = useMemo(() => {
-    return ROLES.find(r => score >= r.range[0] && score <= r.range[1]);
-  }, [score]);
+            const handleSelect = (idx) => {
+                if (showAnalysis) return;
+                setSelectedAnswer(idx);
+                setShowAnalysis(true);
+                if (idx === QUESTIONS[currentIdx].answer) {
+                    setScore(s => s + 1);
+                }
+            };
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-red-100">
-      {/* Background Decor */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] overflow-hidden">
-        <svg className="absolute top-0 right-0 w-64 h-64 text-red-900 transform translate-x-1/2 -translate-y-1/2" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" />
-          <path d="M50 10 L50 90 M10 50 L90 50" stroke="currentColor" strokeWidth="0.5" />
-        </svg>
-      </div>
+            const handleNext = () => {
+                if (currentIdx < QUESTIONS.length - 1) {
+                    setCurrentIdx(i => i + 1);
+                    setSelectedAnswer(null);
+                    setShowAnalysis(false);
+                } else {
+                    setStep('result');
+                }
+            };
 
-      <div className="max-w-md mx-auto min-h-screen flex flex-col relative z-10">
-        
-        {/* Progress Bar */}
-        {step === 'quiz' && (
-          <div className="pt-8 px-6">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold text-red-700 tracking-wider">VIETNAM MARKET INSIGHTS</span>
-              <span className="text-xs font-medium text-slate-400">{currentIdx + 1} / {QUESTIONS.length}</span>
-            </div>
-            <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-red-600 transition-all duration-500 ease-out" 
-                style={{ width: `${((currentIdx + 1) / QUESTIONS.length) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
+            const currentRole = useMemo(() => {
+                return ROLES.find(r => score >= r.range[0] && score <= r.range[1]);
+            }, [score]);
 
-        <main className="flex-grow flex flex-col p-6">
-          
-          {step === 'home' && (
-            <div className="flex-grow flex flex-col justify-center items-center text-center animate-in fade-in duration-700">
-              <div className="w-20 h-20 bg-red-600 rounded-2xl flex items-center justify-center mb-8 shadow-xl shadow-red-200 rotate-3">
-                <Globe className="text-white w-10 h-10" />
-              </div>
-              <h1 className="text-3xl font-extrabold text-slate-800 mb-4 leading-tight">
-                1分钟测一测：<br />
-                <span className="text-red-600">你适合出海越南吗？</span>
-              </h1>
-              <p className="text-slate-500 mb-10 leading-relaxed max-w-[280px]">
-                洞察东南亚市场蓝海，<br />通过10个维度精准定位你的出海画像。
-              </p>
-              <button 
-                onClick={handleStart}
-                className="w-full bg-slate-900 text-white py-5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-all shadow-lg active:scale-95"
-              >
-                立即开始测试 <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-
-          {step === 'quiz' && (
-            <div className="flex-grow flex flex-col justify-center animate-in slide-in-from-right-4 duration-500">
-              <h2 className="text-xl font-bold text-slate-800 mb-8 leading-relaxed">
-                {QUESTIONS[currentIdx].question}
-              </h2>
-              
-              <div className="space-y-4">
-                {QUESTIONS[currentIdx].options.map((opt, i) => {
-                  const isSelected = selectedAnswer === i;
-                  const isCorrect = i === QUESTIONS[currentIdx].answer;
-                  let btnClass = "w-full text-left p-5 rounded-2xl border-2 transition-all duration-200 flex justify-between items-center ";
-                  
-                  if (!showAnalysis) {
-                    btnClass += "border-slate-100 bg-white hover:border-red-200 hover:bg-red-50 active:scale-[0.98]";
-                  } else {
-                    if (isCorrect) {
-                      btnClass += "border-emerald-500 bg-emerald-50 text-emerald-900";
-                    } else if (isSelected) {
-                      btnClass += "border-red-500 bg-red-50 text-red-900";
-                    } else {
-                      btnClass += "border-slate-100 bg-slate-50 opacity-50";
-                    }
-                  }
-
-                  return (
-                    <button 
-                      key={i} 
-                      onClick={() => handleSelect(i)}
-                      className={btnClass}
-                    >
-                      <span className="font-medium">{opt}</span>
-                      {showAnalysis && isCorrect && <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center"><div className="w-2 h-4 border-r-2 border-b-2 border-white rotate-45 mb-1"></div></div>}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {showAnalysis && (
-                <div className="mt-8 animate-in fade-in zoom-in-95 duration-300">
-                  <div className="bg-amber-50 border-l-4 border-amber-400 p-5 rounded-r-2xl">
-                    <div className="flex items-center gap-2 mb-2 text-amber-800 font-bold text-sm">
-                      <Lightbulb className="w-4 h-4" />
-                      <span>解析说明</span>
+            return (
+                <div className="min-h-screen text-slate-900 flex justify-center">
+                    {/* Background Decor */}
+                    <div className="fixed inset-0 pointer-events-none opacity-[0.03] overflow-hidden">
+                        <svg className="absolute top-0 right-0 w-64 h-64 text-red-900 transform translate-x-1/2 -translate-y-1/2" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="0.5" />
+                            <path d="M50 10 L50 90 M10 50 L90 50" stroke="currentColor" strokeWidth="0.5" />
+                        </svg>
                     </div>
-                    <p className="text-amber-900 text-sm leading-relaxed">
-                      {QUESTIONS[currentIdx].analysis}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={handleNext}
-                    className="w-full mt-8 bg-red-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-red-100"
-                  >
-                    {currentIdx === QUESTIONS.length - 1 ? "查看测试结果" : "下一题"} <ChevronRight className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
 
-          {step === 'result' && (
-            <div className="flex-grow animate-in fade-in duration-1000 pb-10">
-              <div className="text-center mb-8 pt-4">
-                <div className="inline-block px-4 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold mb-4">
-                  测试完成
-                </div>
-                <h2 className="text-4xl font-black text-slate-800 mb-2">{score}<span className="text-lg text-slate-400">/10</span></h2>
-                <div className="text-sm text-slate-500">
-                   已超过约 <span className="text-red-600 font-bold">{currentRole.percent}</span> 的参与者
-                </div>
-              </div>
+                    <div className="w-full max-w-md min-h-screen flex flex-col relative z-10 bg-slate-50">
+                        {step === 'quiz' && (
+                            <div className="pt-8 px-6">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-[10px] font-bold text-red-700 tracking-widest">VIETNAM MARKET INSIGHTS</span>
+                                    <span className="text-xs font-medium text-slate-400">{currentIdx + 1} / {QUESTIONS.length}</span>
+                                </div>
+                                <div className="h-1 w-full bg-slate-200 rounded-full overflow-hidden">
+                                    <div className="h-full bg-red-600 transition-all duration-500" style={{ width: `${((currentIdx + 1) / QUESTIONS.length) * 100}%` }}></div>
+                                </div>
+                            </div>
+                        )}
 
-              <div className="bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100 mb-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <Award className="w-16 h-16 text-red-600" />
-                </div>
-                <div className="text-xs font-bold text-red-600 mb-2 flex items-center gap-1 uppercase tracking-widest">
-                   <Target className="w-3 h-3" /> 出海角色画像
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-4">{currentRole.title}</h3>
-                <div className="inline-block px-3 py-1 bg-slate-900 text-white rounded-lg text-xs mb-6 font-medium">
-                  {currentRole.status}
-                </div>
-                <p className="text-slate-600 text-sm leading-relaxed mb-8">
-                  {currentRole.desc}
-                </p>
+                        <main className="flex-grow flex flex-col p-6">
+                            {step === 'home' && (
+                                <div className="flex-grow flex flex-col justify-center items-center text-center">
+                                    <div className="w-20 h-20 bg-red-600 rounded-2xl flex items-center justify-center mb-8 shadow-xl shadow-red-100 rotate-3">
+                                        <Icon name="globe" className="text-white w-10 h-10" />
+                                    </div>
+                                    <h1 className="text-3xl font-extrabold text-slate-800 mb-4 leading-tight">1分钟测一测：<br /><span className="text-red-600">你适合出海越南吗？</span></h1>
+                                    <p className="text-slate-500 mb-10 leading-relaxed">洞察东南亚市场蓝海，<br />通过10个维度精准定位你的出海画像。</p>
+                                    <button onClick={handleStart} className="w-full bg-slate-900 text-white py-5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-all shadow-lg">
+                                        立即开始测试 <Icon name="chevron-right" className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            )}
 
-                <div className="space-y-8">
-                  <section>
-                    <h4 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
-                      <Users className="w-4 h-4 text-red-500" /> 你的特点
-                    </h4>
-                    <ul className="space-y-3">
-                      {currentRole.features.map((f, i) => (
-                        <li key={i} className="text-sm text-slate-500 flex items-start gap-3">
-                          <span className="mt-1.5 w-1.5 h-1.5 bg-red-400 rounded-full flex-shrink-0"></span>
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
+                            {step === 'quiz' && (
+                                <div className="flex-grow flex flex-col justify-center">
+                                    <h2 className="text-xl font-bold text-slate-800 mb-8">{QUESTIONS[currentIdx].question}</h2>
+                                    <div className="space-y-4">
+                                        {QUESTIONS[currentIdx].options.map((opt, i) => (
+                                            <button 
+                                                key={i} 
+                                                onClick={() => handleSelect(i)}
+                                                className={`w-full text-left p-5 rounded-2xl border-2 transition-all flex justify-between items-center ${
+                                                    !showAnalysis ? "border-slate-100 bg-white hover:border-red-200" :
+                                                    i === QUESTIONS[currentIdx].answer ? "border-emerald-500 bg-emerald-50 text-emerald-900" :
+                                                    selectedAnswer === i ? "border-red-500 bg-red-50 text-red-900" : "border-slate-100 bg-slate-50 opacity-50"
+                                                }`}
+                                            >
+                                                <span className="font-medium">{opt}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {showAnalysis && (
+                                        <div className="mt-8 animate-in fade-in zoom-in-95">
+                                            <div className="bg-amber-50 border-l-4 border-amber-400 p-5 rounded-r-2xl">
+                                                <div className="flex items-center gap-2 mb-2 text-amber-800 font-bold text-sm">
+                                                    <Icon name="lightbulb" className="w-4 h-4" /> <span>解析说明</span>
+                                                </div>
+                                                <p className="text-amber-900 text-sm leading-relaxed">{QUESTIONS[currentIdx].analysis}</p>
+                                            </div>
+                                            <button onClick={handleNext} className="w-full mt-8 bg-red-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg">
+                                                {currentIdx === QUESTIONS.length - 1 ? "查看测试结果" : "下一题"} <Icon name="chevron-right" className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
-                  <section>
-                    <h4 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-red-500" /> 建议下一步动作
-                    </h4>
-                    <div className="grid gap-3">
-                      {currentRole.suggestions.map((s, i) => (
-                        <div key={i} className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-700 flex items-center gap-3">
-                          <div className="w-6 h-6 bg-white rounded-full shadow-sm flex items-center justify-center text-[10px] font-bold text-red-600 flex-shrink-0">{i+1}</div>
-                          {s}
-                        </div>
-                      ))}
+                            {step === 'result' && (
+                                <div className="flex-grow pb-10">
+                                    <div className="text-center mb-8 pt-4">
+                                        <div className="inline-block px-4 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold mb-4">测试完成</div>
+                                        <h2 className="text-4xl font-black text-slate-800 mb-2">{score}<span className="text-lg text-slate-400">/10</span></h2>
+                                        <div className="text-sm text-slate-500">已超过约 <span className="text-red-600 font-bold">{currentRole.percent}</span> 的参与者</div>
+                                    </div>
+                                    <div className="bg-white rounded-3xl p-8 shadow-xl border border-slate-100 mb-6 relative">
+                                        <div className="text-xs font-bold text-red-600 mb-2 flex items-center gap-1 uppercase tracking-widest"><Icon name="target" className="w-3 h-3" /> 出海角色画像</div>
+                                        <h3 className="text-2xl font-bold text-slate-900 mb-4">{currentRole.title}</h3>
+                                        <div className="inline-block px-3 py-1 bg-slate-900 text-white rounded-lg text-xs mb-6 font-medium">{currentRole.status}</div>
+                                        <p className="text-slate-600 text-sm leading-relaxed mb-8">{currentRole.desc}</p>
+                                        <div className="space-y-8">
+                                            <section>
+                                                <h4 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2"><Icon name="users" className="w-4 h-4 text-red-500" /> 你的特点</h4>
+                                                <ul className="space-y-3">
+                                                    {currentRole.features.map((f, i) => <li key={i} className="text-sm text-slate-500 flex items-start gap-3"><span className="mt-1.5 w-1.5 h-1.5 bg-red-400 rounded-full flex-shrink-0"></span>{f}</li>)}
+                                                </ul>
+                                            </section>
+                                            <section>
+                                                <h4 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2"><Icon name="book-open" className="w-4 h-4 text-red-500" /> 建议下一步动作</h4>
+                                                <div className="grid gap-3">
+                                                    {currentRole.suggestions.map((s, i) => (
+                                                        <div key={i} className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-700 flex items-center gap-3">
+                                                            <div className="w-6 h-6 bg-white rounded-full shadow-sm flex items-center justify-center text-[10px] font-bold text-red-600 flex-shrink-0">{i+1}</div>
+                                                            {s}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        </div>
+                                    </div>
+                                    <div className="text-center mt-12 border-t border-dashed border-slate-200 pt-8">
+                                        <div className="text-[11px] text-slate-400 mb-2 font-medium tracking-wider uppercase">出海星链 助力中国企业拓展全球市场</div>
+                                        <div className="text-sm font-bold text-slate-800">Galaxy Link 出海星链</div>
+                                    </div>
+                                    <div className="text-center mt-4">
+                                        <button onClick={() => setStep('home')} className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-red-600 transition-colors py-4">
+                                            <Icon name="refresh-cw" className="w-4 h-4" /> 重新测试
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </main>
+                        <footer className="p-6 text-center text-[10px] text-slate-300 uppercase tracking-[0.2em] font-medium">Powered by Galaxy Link</footer>
                     </div>
-                  </section>
                 </div>
-              </div>
+            );
+        }
 
-              <div className="text-center">
-                <button 
-                  onClick={() => setStep('home')}
-                  className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-red-600 transition-colors py-4"
-                >
-                  <RefreshCw className="w-4 h-4" /> 重新测试
-                </button>
-              </div>
-
-              <div className="mt-12 border-t border-dashed border-slate-200 pt-8 text-center">
-                <div className="text-[11px] text-slate-400 mb-2 font-medium tracking-wider uppercase">
-                  出海星链 助力中国企业拓展全球市场
-                </div>
-                <div className="text-sm font-bold text-slate-800">
-                  Galaxy Link 出海星链
-                </div>
-              </div>
-            </div>
-          )}
-        </main>
-
-        <footer className="p-6 text-center text-[10px] text-slate-300 uppercase tracking-[0.2em] font-medium">
-          Powered by Galaxy Link
-        </footer>
-      </div>
-    </div>
-  );
-}
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
