@@ -25,11 +25,25 @@ body {
   text-align: center;
   margin-bottom: 10px;
 }
-.progress {
+.progress-text {
   text-align: center;
   font-size: 14px;
   color: #6b7c93;
+  margin-bottom: 10px;
+}
+/* Progress bar */
+.progress-bar-wrap {
+  background: #e8f0ed;
+  border-radius: 99px;
+  height: 8px;
   margin-bottom: 20px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #0a7f5a, #1db380);
+  transition: width 0.4s ease;
 }
 .question {
   font-size: 18px;
@@ -37,26 +51,57 @@ body {
 }
 .option {
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1.5px solid #ddd;
   border-radius: 10px;
   margin-bottom: 10px;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.option:hover {
+.option:hover:not(.disabled) {
   border-color: #0a7f5a;
   background: #f0faf7;
 }
-.option.selected {
+.option.selected-correct {
+  border-color: #0a7f5a;
   background: #e0f5ef;
 }
+.option.selected-wrong {
+  border-color: #d94f4f;
+  background: #fdeaea;
+}
+.option.show-correct {
+  border-color: #0a7f5a;
+  background: #e0f5ef;
+}
+.option.disabled {
+  cursor: default;
+}
+/* Icons inside options */
+.opt-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: bold;
+}
+.icon-correct { background: #0a7f5a; color: white; }
+.icon-wrong   { background: #d94f4f; color: white; }
+.icon-neutral { background: #e8f0ed; color: #6b7c93; }
 .explanation {
   background: #f6fbf9;
   border-left: 4px solid #0a7f5a;
   padding: 10px;
   margin-top: 10px;
-  border-radius: 6px;
+  border-radius: 0 6px 6px 0;
   font-size: 14px;
+  color: #1f2d3d;
 }
 .btn {
   width: 100%;
@@ -68,24 +113,115 @@ body {
   font-size: 16px;
   cursor: pointer;
   margin-top: 20px;
+  transition: background 0.2s;
 }
-.result {
-  text-align: left;
-}
+.btn:hover { background: #08694a; }
 .hidden { display: none; }
-.badge {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 10px;
+
+/* Result page */
+.result { text-align: left; }
+.result-badge {
+  font-size: 32px;
+  margin-bottom: 4px;
 }
+.result-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0a7f5a;
+  margin-bottom: 2px;
+}
+.result-meta {
+  font-size: 13px;
+  color: #6b7c93;
+  margin-bottom: 4px;
+}
+.result-score {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2d3d;
+  margin-bottom: 12px;
+}
+.result-intro {
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: 16px;
+  color: #2c3e50;
+}
+.result-section {
+  margin-bottom: 14px;
+}
+.result-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0a7f5a;
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+.result-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.result-list li {
+  font-size: 14px;
+  color: #2c3e50;
+  padding: 4px 0 4px 16px;
+  position: relative;
+  line-height: 1.6;
+}
+.result-list li::before {
+  content: "·";
+  position: absolute;
+  left: 4px;
+  color: #0a7f5a;
+  font-size: 18px;
+  line-height: 1.2;
+}
+.divider {
+  border: none;
+  border-top: 1px solid #e8f0ed;
+  margin: 14px 0;
+}
+.result-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.btn-outline {
+  flex: 1;
+  padding: 12px;
+  background: white;
+  color: #0a7f5a;
+  border: 1.5px solid #0a7f5a;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-outline:hover { background: #f0faf7; }
+.btn-primary {
+  flex: 1;
+  padding: 12px;
+  background: #0a7f5a;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: #08694a; }
 </style>
 </head>
 <body>
 <div class="container">
   <div id="quiz">
     <div class="title">1分钟测一测：你适合出海越南吗？</div>
-    <div id="progress" class="progress"></div>
-    <div id="q"></div>
+    <div id="progress-text" class="progress-text"></div>
+    <div class="progress-bar-wrap">
+      <div id="progress-bar" class="progress-bar-fill" style="width: 0%;"></div>
+    </div>
+    <div id="q" class="question"></div>
     <div id="options"></div>
     <div id="explanation" class="explanation hidden"></div>
     <button id="nextBtn" class="btn hidden" onclick="nextQuestion()">下一题</button>
@@ -104,7 +240,96 @@ const questions = [
   {q:"不适合优先布局的行业是？", options:["制造业","跨境电商","高端金融"], answer:2, exp:"高端金融仍受市场成熟度限制。"},
   {q:"越南商务沟通更推荐？", options:["强势谈判","建立长期关系","快速签约"], answer:1, exp:"越南商业文化偏重关系导向。"},
   {q:"制造业优势来自？", options:["高技术","低成本+政策","原材料"], answer:1, exp:"成本与政策是关键优势。"},
-  {q:"越南语你好是？", options:["Sawadika","Xin Chào","Apa Khabar"], answer:1, exp:"记住“Xin Chào”，快速建立第一印象。"}
+  {q:"越南语你好是？", options:["Sawadika","Xin Chào","Apa Khabar"], answer:1, exp:"记住"Xin Chào"，快速建立第一印象。"}
+];
+
+const results = [
+  {
+    range: "0–4题",
+    percentile: "已超过约30%的参与者",
+    badge: "🌱",
+    title: "越南市场观察者",
+    intro: "你目前处在"关注与了解阶段"。你已经开始留意越南市场机会，对东南亚出海有初步认知，但整体信息仍偏碎片化，对市场结构、商业环境和实际落地路径还不够清晰。",
+    traits: {
+      title: "你的特点",
+      items: [
+        "对越南市场有兴趣，但认知尚未体系化",
+        "更关注"机会"，对"风险"和"执行难度"理解有限",
+        "可能仍在多个出海目的地之间比较"
+      ]
+    },
+    extra: null,
+    advice: {
+      title: "建议你下一步这样做",
+      items: [
+        "明确出海目标：成本导向 or 市场导向",
+        "快速建立基础认知（城市结构、行业分布、消费特征）",
+        "参考2–3个已进入越南的中国企业案例"
+      ]
+    }
+  },
+  {
+    range: "5–7题",
+    percentile: "已超过约65%的参与者",
+    badge: "🚀",
+    title: "越南市场规划者",
+    intro: "你已经进入"评估与准备阶段"。你不仅了解越南市场，还在认真思考是否进入，甚至已经在内部讨论或接触过相关资源。",
+    traits: {
+      title: "你的特点",
+      items: [
+        "对市场已有一定认知，开始关注落地问题",
+        "正在评估进入方式（合作 / 自建 / 渠道）",
+        "对行业机会有初步判断"
+      ]
+    },
+    extra: {
+      title: "潜在关键点",
+      items: [
+        "信息来源较分散，需要系统化判断",
+        "本地化难度（渠道、团队、文化）是关键变量",
+        "进入路径选择将直接影响成本与效率"
+      ]
+    },
+    advice: {
+      title: "建议你下一步这样做",
+      items: [
+        "明确进入模式（代理 / 合资 / 本地团队）",
+        "优先筛选可靠的本地合作资源",
+        "提前评估合规与用工环境"
+      ]
+    }
+  },
+  {
+    range: "8–10题",
+    percentile: "已超过约90%的参与者",
+    badge: "🧠",
+    title: "越南市场布局者",
+    intro: "你已具备"落地与扩展能力"。你对越南市场有较系统的理解，可能已经有实际布局，或具备清晰的进入路径与资源储备。",
+    traits: {
+      title: "你的特点",
+      items: [
+        "对市场结构、行业机会有较深认知",
+        "已具备一定本地资源或实际经验",
+        "更关注效率、规模化与长期竞争力"
+      ]
+    },
+    extra: {
+      title: "潜在挑战",
+      items: [
+        "本地竞争加剧（中企与本土企业并存）",
+        "跨文化团队管理难度上升",
+        "扩张节奏与成本控制的平衡"
+      ]
+    },
+    advice: {
+      title: "建议你下一步这样做",
+      items: [
+        "强化本地团队与组织能力",
+        "深化本地化（品牌、产品、运营）",
+        "寻找差异化竞争路径，避免同质化竞争"
+      ]
+    }
+  }
 ];
 
 let current = 0;
@@ -113,7 +338,11 @@ let locked = false;
 
 function loadQuestion() {
   locked = false;
-  document.getElementById('progress').innerText = `第 ${current+1} 题 / 共 ${questions.length} 题`;
+  const total = questions.length;
+  const pct = Math.round((current / total) * 100);
+  document.getElementById('progress-text').innerText = `第 ${current + 1} 题 / 共 ${total} 题`;
+  document.getElementById('progress-bar').style.width = pct + '%';
+
   const q = questions[current];
   document.getElementById('q').innerText = q.q;
   const optionsDiv = document.getElementById('options');
@@ -121,59 +350,127 @@ function loadQuestion() {
   document.getElementById('explanation').classList.add('hidden');
   document.getElementById('nextBtn').classList.add('hidden');
 
-  q.options.forEach((opt,i)=>{
+  q.options.forEach((opt, i) => {
     const div = document.createElement('div');
-    div.className='option';
-    div.innerText = opt;
-    div.onclick = ()=> selectOption(div,i);
+    div.className = 'option';
+    div.setAttribute('role', 'button');
+    div.setAttribute('tabindex', '0');
+
+    const icon = document.createElement('span');
+    icon.className = 'opt-icon icon-neutral';
+    icon.innerText = ['A','B','C'][i];
+
+    const label = document.createElement('span');
+    label.innerText = opt;
+
+    div.appendChild(icon);
+    div.appendChild(label);
+
+    div.onclick = () => selectOption(div, i, icon);
+    div.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') selectOption(div, i, icon); };
     optionsDiv.appendChild(div);
   });
 }
 
-function selectOption(div,i) {
-  if(locked) return;
+function selectOption(div, i, icon) {
+  if (locked) return;
   locked = true;
 
-  document.querySelectorAll('.option').forEach(el=>el.classList.remove('selected'));
-  div.classList.add('selected');
+  const isCorrect = i === questions[current].answer;
+  if (isCorrect) score++;
 
-  if(i === questions[current].answer) score++;
+  // Style all options
+  const allOptions = document.querySelectorAll('.option');
+  allOptions.forEach((el, idx) => {
+    el.classList.add('disabled');
+    const elIcon = el.querySelector('.opt-icon');
+    if (idx === i) {
+      if (isCorrect) {
+        el.classList.add('selected-correct');
+        elIcon.className = 'opt-icon icon-correct';
+        elIcon.innerText = '✓';
+      } else {
+        el.classList.add('selected-wrong');
+        elIcon.className = 'opt-icon icon-wrong';
+        elIcon.innerText = '✗';
+      }
+    } else if (idx === questions[current].answer && !isCorrect) {
+      // Reveal the correct answer when user was wrong
+      el.classList.add('show-correct');
+      elIcon.className = 'opt-icon icon-correct';
+      elIcon.innerText = '✓';
+    }
+  });
 
   const expDiv = document.getElementById('explanation');
   expDiv.innerText = questions[current].exp;
   expDiv.classList.remove('hidden');
 
-  document.getElementById('nextBtn').classList.remove('hidden');
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.classList.remove('hidden');
+  nextBtn.innerText = current < questions.length - 1 ? '下一题' : '查看结果';
 }
 
 function nextQuestion() {
   current++;
-  if(current < questions.length) {
+  if (current < questions.length) {
     loadQuestion();
   } else {
     showResult();
   }
 }
 
+function renderList(section) {
+  return `<div class="result-section">
+    <div class="result-section-title">${section.title}</div>
+    <ul class="result-list">
+      ${section.items.map(item => `<li>${item}</li>`).join('')}
+    </ul>
+  </div>`;
+}
+
 function showResult() {
+  document.getElementById('progress-bar').style.width = '100%';
   document.getElementById('quiz').classList.add('hidden');
   const res = document.getElementById('result');
   res.classList.remove('hidden');
 
-  let html = "";
-  if(score <=4) {
-    html = `<div class='badge'>🌱 越南市场观察者</div>
-    <p>已超过30%的参与者</p>`;
-  } else if(score <=7) {
-    html = `<div class='badge'>🚀 越南市场规划者</div>
-    <p>已超过65%的参与者</p>`;
-  } else {
-    html = `<div class='badge'>🧠 越南市场布局者</div>
-    <p>已超过90%的参与者</p>`;
-  }
+  let r;
+  if (score <= 4) r = results[0];
+  else if (score <= 7) r = results[1];
+  else r = results[2];
 
-  html += `<button class='btn'>获取专属出海建议</button>`;
+  let html = `
+    <div class="result-badge">${r.badge}</div>
+    <div class="result-title">${r.title}</div>
+    <div class="result-meta">（${r.range}）｜${r.percentile}</div>
+    <div class="result-score">你答对了 ${score} / ${questions.length} 题</div>
+    <hr class="divider">
+    <div class="result-intro">${r.intro}</div>
+    ${renderList(r.traits)}
+    ${r.extra ? renderList(r.extra) : ''}
+    <hr class="divider">
+    ${renderList(r.advice)}
+    <div class="result-actions">
+      <button class="btn-outline" onclick="restartQuiz()">重新测试</button>
+      <button class="btn-primary" onclick="getCTA()">获取专属出海建议</button>
+    </div>
+  `;
   res.innerHTML = html;
+}
+
+function restartQuiz() {
+  current = 0;
+  score = 0;
+  locked = false;
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('quiz').classList.remove('hidden');
+  loadQuestion();
+}
+
+function getCTA() {
+  // Replace this URL or action with your actual CTA destination
+  alert('即将跳转到专属出海建议页面');
 }
 
 loadQuestion();
