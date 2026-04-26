@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>越南市场测评</title>
+<style>
+body {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa, #e4efe9);
+  margin: 0;
+  color: #1f2d3d;
+}
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.progress {
+  text-align: center;
+  font-size: 14px;
+  color: #6b7c93;
+  margin-bottom: 20px;
+}
+.question {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+.option {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.option:hover {
+  border-color: #0a7f5a;
+  background: #f0faf7;
+}
+.option.selected {
+  background: #e0f5ef;
+}
+.explanation {
+  background: #f6fbf9;
+  border-left: 4px solid #0a7f5a;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.btn {
+  width: 100%;
+  padding: 14px;
+  background: #0a7f5a;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+.result {
+  text-align: left;
+}
+.hidden { display: none; }
+.badge {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="quiz">
+    <div class="title">1分钟测一测：你适合出海越南吗？</div>
+    <div id="progress" class="progress"></div>
+    <div id="q"></div>
+    <div id="options"></div>
+    <div id="explanation" class="explanation hidden"></div>
+    <button id="nextBtn" class="btn hidden" onclick="nextQuestion()">下一题</button>
+  </div>
+  <div id="result" class="hidden result"></div>
+</div>
+
+<script>
+const questions = [
+  {q:"越南人口大约是多少？", options:["5000万","1亿左右","2亿"], answer:1, exp:"越南人口接近1亿，是东南亚重要人口大国。"},
+  {q:"越南的主要经济中心是？", options:["河内 + 岘港","河内 + 胡志明市","胡志明市 + 芽庄"], answer:1, exp:"北部政治中心河内，南部经济中心胡志明市。"},
+  {q:"越南人口结构的特点是？", options:["老龄化严重","年轻人口占比高","人口增长停滞"], answer:1, exp:"越南平均年龄约32岁，消费潜力大。"},
+  {q:"中国企业进入越南，常见的第一步是？", options:["直接建厂","找本地合作伙伴/代理","先开线下门店"], answer:1, exp:"本地资源和渠道非常关键。"},
+  {q:"越南商务谈判中喝滴漏咖啡意味着？", options:["拒绝合作","愿意深入沟通","只是解渴"], answer:1, exp:"喝咖啡是建立关系的重要方式。"},
+  {q:"越南农业出口优势产品是？", options:["咖啡","小麦","玉米"], answer:0, exp:"越南是全球重要咖啡出口国。"},
+  {q:"不适合优先布局的行业是？", options:["制造业","跨境电商","高端金融"], answer:2, exp:"高端金融仍受市场成熟度限制。"},
+  {q:"越南商务沟通更推荐？", options:["强势谈判","建立长期关系","快速签约"], answer:1, exp:"越南商业文化偏重关系导向。"},
+  {q:"制造业优势来自？", options:["高技术","低成本+政策","原材料"], answer:1, exp:"成本与政策是关键优势。"},
+  {q:"越南语你好是？", options:["Sawadika","Xin Chào","Apa Khabar"], answer:1, exp:"记住“Xin Chào”，快速建立第一印象。"}
+];
+
+let current = 0;
+let score = 0;
+let locked = false;
+
+function loadQuestion() {
+  locked = false;
+  document.getElementById('progress').innerText = `第 ${current+1} 题 / 共 ${questions.length} 题`;
+  const q = questions[current];
+  document.getElementById('q').innerText = q.q;
+  const optionsDiv = document.getElementById('options');
+  optionsDiv.innerHTML = '';
+  document.getElementById('explanation').classList.add('hidden');
+  document.getElementById('nextBtn').classList.add('hidden');
+
+  q.options.forEach((opt,i)=>{
+    const div = document.createElement('div');
+    div.className='option';
+    div.innerText = opt;
+    div.onclick = ()=> selectOption(div,i);
+    optionsDiv.appendChild(div);
+  });
+}
+
+function selectOption(div,i) {
+  if(locked) return;
+  locked = true;
+
+  document.querySelectorAll('.option').forEach(el=>el.classList.remove('selected'));
+  div.classList.add('selected');
+
+  if(i === questions[current].answer) score++;
+
+  const expDiv = document.getElementById('explanation');
+  expDiv.innerText = questions[current].exp;
+  expDiv.classList.remove('hidden');
+
+  document.getElementById('nextBtn').classList.remove('hidden');
+}
+
+function nextQuestion() {
+  current++;
+  if(current < questions.length) {
+    loadQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById('quiz').classList.add('hidden');
+  const res = document.getElementById('result');
+  res.classList.remove('hidden');
+
+  let html = "";
+  if(score <=4) {
+    html = `<div class='badge'>🌱 越南市场观察者</div>
+    <p>已超过30%的参与者</p>`;
+  } else if(score <=7) {
+    html = `<div class='badge'>🚀 越南市场规划者</div>
+    <p>已超过65%的参与者</p>`;
+  } else {
+    html = `<div class='badge'>🧠 越南市场布局者</div>
+    <p>已超过90%的参与者</p>`;
+  }
+
+  html += `<button class='btn'>获取专属出海建议</button>`;
+  res.innerHTML = html;
+}
+
+loadQuestion();
+</script>
+</body>
+</html>
